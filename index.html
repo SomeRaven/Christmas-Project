@@ -1,0 +1,795 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>My Christmas List 🎄</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .container {
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            max-width: 600px;
+            width: 100%;
+            padding: 40px;
+        }
+
+        h1 {
+            color: #c41e3a;
+            text-align: center;
+            margin-bottom: 10px;
+            font-size: 2.5em;
+        }
+
+        .subtitle {
+            text-align: center;
+            color: #666;
+            margin-bottom: 30px;
+            font-style: italic;
+        }
+
+        .filter-section {
+            background: #f8f9fa;
+            border-radius: 10px;
+            padding: 15px;
+            margin-bottom: 20px;
+            display: flex;
+            gap: 10px;
+            align-items: center;
+            flex-wrap: wrap;
+        }
+
+        .filter-section label {
+            font-weight: 600;
+            color: #666;
+        }
+
+        .filter-section select {
+            padding: 8px 12px;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            font-size: 14px;
+            cursor: pointer;
+            background: white;
+        }
+
+        .filter-section select:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+
+        .setup-notice {
+            background: #fff3cd;
+            border: 2px solid #ffc107;
+            border-radius: 10px;
+            padding: 15px;
+            margin-bottom: 20px;
+        }
+
+        .setup-notice h3 {
+            color: #856404;
+            margin-bottom: 10px;
+        }
+
+        .setup-notice p {
+            color: #856404;
+            font-size: 14px;
+            line-height: 1.5;
+        }
+
+        .setup-notice code {
+            background: #fff;
+            padding: 2px 6px;
+            border-radius: 3px;
+            font-family: monospace;
+        }
+
+        .input-section {
+            display: grid;
+            gap: 10px;
+            margin-bottom: 30px;
+            grid-template-columns: 1fr;
+        }
+
+        .input-row {
+            display: flex;
+            gap: 10px;
+        }
+
+        .input-group {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            gap: 5px;
+        }
+
+        .input-group label {
+            font-size: 12px;
+            font-weight: 600;
+            color: #666;
+        }
+
+        input[type="text"],
+        input[type="number"],
+        input[type="url"],
+        textarea,
+        select {
+            padding: 12px 15px;
+            border: 2px solid #e0e0e0;
+            border-radius: 10px;
+            font-size: 16px;
+            transition: border-color 0.3s;
+            font-family: inherit;
+        }
+
+        textarea {
+            resize: vertical;
+            min-height: 60px;
+        }
+
+        input[type="text"]:focus,
+        input[type="number"]:focus,
+        input[type="url"]:focus,
+        textarea:focus,
+        select:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+
+        input[type="number"] {
+            width: 100%;
+        }
+
+        button {
+            padding: 12px 25px;
+            background: #c41e3a;
+            color: white;
+            border: none;
+            border-radius: 10px;
+            font-size: 16px;
+            cursor: pointer;
+            transition: background 0.3s;
+            font-weight: 600;
+        }
+
+        button:hover {
+            background: #a01729;
+        }
+
+        button:disabled {
+            background: #ccc;
+            cursor: not-allowed;
+        }
+
+        .list-container {
+            background: #f8f9fa;
+            border-radius: 15px;
+            padding: 20px;
+            min-height: 200px;
+        }
+
+        .list-item {
+            background: white;
+            padding: 15px;
+            margin-bottom: 10px;
+            border-radius: 10px;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+            transition: transform 0.2s;
+        }
+
+        .list-item:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.15);
+        }
+
+        .item-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            gap: 10px;
+        }
+
+        .item-main {
+            flex: 1;
+        }
+
+        .item-text {
+            font-size: 18px;
+            font-weight: 600;
+            color: #333;
+            margin-bottom: 5px;
+        }
+
+        .item-priority {
+            display: inline-block;
+            padding: 3px 8px;
+            border-radius: 5px;
+            font-size: 12px;
+            font-weight: 600;
+            margin-left: 8px;
+        }
+
+        .priority-high {
+            background: #fee;
+            color: #c41e3a;
+        }
+
+        .priority-medium {
+            background: #fff3cd;
+            color: #856404;
+        }
+
+        .priority-low {
+            background: #e7f3ff;
+            color: #0066cc;
+        }
+
+        .item-price {
+            font-size: 16px;
+            color: #28a745;
+            font-weight: 600;
+        }
+
+        .item-description {
+            color: #666;
+            font-size: 14px;
+            line-height: 1.5;
+            margin-top: 5px;
+        }
+
+        .item-link {
+            margin-top: 5px;
+        }
+
+        .item-link a {
+            color: #667eea;
+            text-decoration: none;
+            font-size: 14px;
+        }
+
+        .item-link a:hover {
+            text-decoration: underline;
+        }
+
+        .item-meta {
+            font-size: 12px;
+            color: #999;
+            margin-top: 5px;
+        }
+
+        .item-actions {
+            display: flex;
+            gap: 8px;
+        }
+
+        .edit-btn, .delete-btn {
+            padding: 6px 12px;
+            font-size: 14px;
+            border-radius: 6px;
+        }
+
+        .edit-btn {
+            background: #667eea;
+        }
+
+        .edit-btn:hover {
+            background: #5568d3;
+        }
+
+        .delete-btn {
+            background: #e74c3c;
+        }
+
+        .delete-btn:hover {
+            background: #c0392b;
+        }
+
+        .empty-message {
+            text-align: center;
+            color: #999;
+            padding: 40px;
+            font-style: italic;
+        }
+
+        .loading-message {
+            text-align: center;
+            color: #667eea;
+            padding: 40px;
+            font-style: italic;
+        }
+
+        .error-message {
+            background: #fee;
+            color: #c41e3a;
+            padding: 10px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+            text-align: center;
+            display: none;
+        }
+
+        .footer {
+            margin-top: 30px;
+            text-align: center;
+            color: #666;
+            font-size: 14px;
+        }
+
+        .snowflake {
+            display: inline-block;
+            margin: 0 5px;
+        }
+
+        @media (max-width: 600px) {
+            .container {
+                padding: 20px;
+            }
+
+            h1 {
+                font-size: 2em;
+            }
+
+            .input-row {
+                flex-direction: column;
+            }
+
+            .filter-section {
+                flex-direction: column;
+                align-items: flex-start;
+            }
+
+            .filter-section select {
+                width: 100%;
+            }
+
+            .item-header {
+                flex-direction: column;
+            }
+
+            .item-actions {
+                width: 100%;
+                justify-content: flex-end;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🎄 My Christmas List 🎁</h1>
+        <p class="subtitle">What I'm hoping for this year</p>
+
+        <div class="setup-notice" id="setupNotice">
+            <h3>⚙️ Setup Required</h3>
+            <p>
+                To enable persistent storage via GitHub, you need to configure your GitHub credentials in the JavaScript code below:
+                <br><br>
+                1. Create a GitHub Personal Access Token (Settings → Developer settings → Personal access tokens → Tokens (classic) → Generate new token)<br>
+                2. Grant <code>repo</code> permissions<br>
+                3. Update the <code>GITHUB_CONFIG</code> in the script below with your username, repo name, and token
+            </p>
+        </div>
+
+        <div id="errorMessage" class="error-message"></div>
+
+        <div class="filter-section">
+            <label for="filterSelect">Sort by:</label>
+            <select id="filterSelect" onchange="handleFilterChange()">
+                <option value="date-latest">Date Added (Latest First)</option>
+                <option value="date-earliest">Date Added (Earliest First)</option>
+                <option value="price-high">Price (Highest First)</option>
+                <option value="price-low">Price (Lowest First)</option>
+                <option value="priority-high">Priority (Most Wanted First)</option>
+                <option value="priority-low">Priority (Least Wanted First)</option>
+            </select>
+        </div>
+
+        <div class="input-section">
+            <div class="input-row">
+                <div class="input-group" style="flex: 2;">
+                    <label for="itemInput">Item Name *</label>
+                    <input 
+                        type="text" 
+                        id="itemInput" 
+                        placeholder="e.g., Wireless Headphones"
+                        required
+                    >
+                </div>
+                <div class="input-group">
+                    <label for="priceInput">Price ($)</label>
+                    <input 
+                        type="number" 
+                        id="priceInput" 
+                        placeholder="0.00"
+                        step="0.01"
+                        min="0"
+                    >
+                </div>
+            </div>
+            
+            <div class="input-row">
+                <div class="input-group">
+                    <label for="linkInput">Link (Optional)</label>
+                    <input 
+                        type="url" 
+                        id="linkInput" 
+                        placeholder="https://example.com/product"
+                    >
+                </div>
+                <div class="input-group">
+                    <label for="priorityInput">Priority</label>
+                    <select id="priorityInput">
+                        <option value="high">High - Really Want!</option>
+                        <option value="medium" selected>Medium - Would Be Nice</option>
+                        <option value="low">Low - Just an Idea</option>
+                    </select>
+                </div>
+            </div>
+
+            <div class="input-group">
+                <label for="descriptionInput">Description (Optional)</label>
+                <textarea 
+                    id="descriptionInput" 
+                    placeholder="Add any details, preferences, colors, sizes, etc..."
+                ></textarea>
+            </div>
+
+            <button id="addBtn" onclick="addItem()">Add to List</button>
+        </div>
+
+        <div class="list-container" id="listContainer">
+            <div class="loading-message">Loading your list...</div>
+        </div>
+
+        <div class="footer">
+            <span class="snowflake">❄️</span>
+            Made with love
+            <span class="snowflake">❄️</span>
+        </div>
+    </div>
+
+    <script>
+        // ============================================
+        // CONFIGURATION - UPDATE THESE VALUES
+        // ============================================
+        const GITHUB_CONFIG = {
+            owner: 'YOUR_GITHUB_USERNAME',        // Your GitHub username
+            repo: 'YOUR_REPO_NAME',               // Repository name (e.g., 'christmas-list')
+            token: 'YOUR_GITHUB_TOKEN',           // Personal Access Token
+            branch: 'main',                       // Branch name (usually 'main' or 'master')
+            filePath: 'data/christmas-list.json'  // Path where data will be stored
+        };
+
+        // ============================================
+        // GitHub API Functions
+        // ============================================
+        let fileSha = null; // Used for updating existing files
+
+        async function githubRequest(endpoint, method = 'GET', body = null) {
+            const url = `https://api.github.com/repos/${GITHUB_CONFIG.owner}/${GITHUB_CONFIG.repo}/${endpoint}`;
+            const options = {
+                method,
+                headers: {
+                    'Authorization': `token ${GITHUB_CONFIG.token}`,
+                    'Accept': 'application/vnd.github.v3+json',
+                    'Content-Type': 'application/json'
+                }
+            };
+
+            if (body) {
+                options.body = JSON.stringify(body);
+            }
+
+            const response = await fetch(url, options);
+            
+            if (!response.ok) {
+                const error = await response.json();
+                throw new Error(error.message || 'GitHub API request failed');
+            }
+
+            return response.json();
+        }
+
+        async function loadItemsFromGitHub() {
+            try {
+                const data = await githubRequest(`contents/${GITHUB_CONFIG.filePath}?ref=${GITHUB_CONFIG.branch}`);
+                fileSha = data.sha;
+                const content = JSON.parse(atob(data.content));
+                return content.items || [];
+            } catch (error) {
+                if (error.message.includes('Not Found')) {
+                    // File doesn't exist yet, return empty array
+                    return [];
+                }
+                throw error;
+            }
+        }
+
+        async function saveItemsToGitHub(items) {
+            const content = btoa(JSON.stringify({ items }, null, 2));
+            const body = {
+                message: 'Update Christmas list',
+                content: content,
+                branch: GITHUB_CONFIG.branch
+            };
+
+            if (fileSha) {
+                body.sha = fileSha;
+            }
+
+            const response = await githubRequest(`contents/${GITHUB_CONFIG.filePath}`, 'PUT', body);
+            fileSha = response.content.sha;
+        }
+
+        // ============================================
+        // Application Logic
+        // ============================================
+        let items = [];
+        let isConfigured = false;
+        let currentFilter = 'date-latest';
+
+        function checkConfiguration() {
+            if (GITHUB_CONFIG.owner === 'YOUR_GITHUB_USERNAME' || 
+                GITHUB_CONFIG.token === 'YOUR_GITHUB_TOKEN' ||
+                GITHUB_CONFIG.repo === 'YOUR_REPO_NAME') {
+                isConfigured = false;
+                document.getElementById('setupNotice').style.display = 'block';
+                // Fall back to localStorage
+                return false;
+            }
+            isConfigured = true;
+            document.getElementById('setupNotice').style.display = 'none';
+            return true;
+        }
+
+        function showError(message) {
+            const errorDiv = document.getElementById('errorMessage');
+            errorDiv.textContent = message;
+            errorDiv.style.display = 'block';
+            setTimeout(() => {
+                errorDiv.style.display = 'none';
+            }, 5000);
+        }
+
+        async function loadItems() {
+            try {
+                if (isConfigured) {
+                    items = await loadItemsFromGitHub();
+                } else {
+                    // Fallback to localStorage
+                    const saved = localStorage.getItem('christmasList');
+                    items = saved ? JSON.parse(saved) : [];
+                }
+                renderList();
+            } catch (error) {
+                console.error('Error loading items:', error);
+                showError('Failed to load your list. Using local storage instead.');
+                // Fallback to localStorage
+                const saved = localStorage.getItem('christmasList');
+                items = saved ? JSON.parse(saved) : [];
+                renderList();
+            }
+        }
+
+        async function saveItems() {
+            try {
+                if (isConfigured) {
+                    await saveItemsToGitHub(items);
+                } else {
+                    // Fallback to localStorage
+                    localStorage.setItem('christmasList', JSON.stringify(items));
+                }
+            } catch (error) {
+                console.error('Error saving items:', error);
+                showError('Failed to save to GitHub. Saving locally instead.');
+                localStorage.setItem('christmasList', JSON.stringify(items));
+            }
+        }
+
+        async function addItem() {
+            const itemName = document.getElementById('itemInput').value.trim();
+            const price = document.getElementById('priceInput').value;
+            const link = document.getElementById('linkInput').value.trim();
+            const priority = document.getElementById('priorityInput').value;
+            const description = document.getElementById('descriptionInput').value.trim();
+            const addBtn = document.getElementById('addBtn');
+
+            if (itemName === '') {
+                alert('Please enter an item name!');
+                return;
+            }
+
+            addBtn.disabled = true;
+            addBtn.textContent = 'Adding...';
+
+            try {
+                const newItem = {
+                    id: Date.now(),
+                    text: itemName,
+                    price: price ? parseFloat(price) : null,
+                    link: link || null,
+                    priority: priority,
+                    description: description || null,
+                    created_at: new Date().toISOString()
+                };
+
+                items.push(newItem);
+                await saveItems();
+                
+                // Clear form
+                document.getElementById('itemInput').value = '';
+                document.getElementById('priceInput').value = '';
+                document.getElementById('linkInput').value = '';
+                document.getElementById('priorityInput').value = 'medium';
+                document.getElementById('descriptionInput').value = '';
+                
+                renderList();
+            } catch (error) {
+                console.error('Error adding item:', error);
+                showError('Failed to add item. Please try again.');
+                items.pop(); // Remove the item we just added
+            } finally {
+                addBtn.disabled = false;
+                addBtn.textContent = 'Add to List';
+            }
+        }
+
+        async function deleteItem(id) {
+            if (!confirm('Are you sure you want to remove this item?')) {
+                return;
+            }
+
+            try {
+                items = items.filter(item => item.id !== id);
+                await saveItems();
+                renderList();
+            } catch (error) {
+                console.error('Error deleting item:', error);
+                showError('Failed to delete item. Please try again.');
+            }
+        }
+
+        async function editItem(id) {
+            const item = items.find(item => item.id === id);
+            
+            // Create a simple edit dialog
+            const newName = prompt('Edit item name:', item.text);
+            if (newName === null) return;
+            
+            const newPrice = prompt('Edit price (leave empty for no price):', item.price || '');
+            const newLink = prompt('Edit link (leave empty for no link):', item.link || '');
+            const newPriority = prompt('Edit priority (high/medium/low):', item.priority);
+            const newDescription = prompt('Edit description:', item.description || '');
+
+            if (newName.trim() === '') {
+                alert('Item name cannot be empty!');
+                return;
+            }
+
+            try {
+                item.text = newName.trim();
+                item.price = newPrice ? parseFloat(newPrice) : null;
+                item.link = newLink.trim() || null;
+                item.priority = ['high', 'medium', 'low'].includes(newPriority) ? newPriority : item.priority;
+                item.description = newDescription.trim() || null;
+                
+                await saveItems();
+                renderList();
+            } catch (error) {
+                console.error('Error updating item:', error);
+                showError('Failed to update item. Please try again.');
+            }
+        }
+
+        function handleFilterChange() {
+            currentFilter = document.getElementById('filterSelect').value;
+            renderList();
+        }
+
+        function sortItems(itemsToSort) {
+            const sorted = [...itemsToSort];
+            
+            switch(currentFilter) {
+                case 'date-latest':
+                    return sorted.sort((a, b) => b.id - a.id);
+                case 'date-earliest':
+                    return sorted.sort((a, b) => a.id - b.id);
+                case 'price-high':
+                    return sorted.sort((a, b) => (b.price || 0) - (a.price || 0));
+                case 'price-low':
+                    return sorted.sort((a, b) => (a.price || Infinity) - (b.price || Infinity));
+                case 'priority-high':
+                    const priorityOrder = { high: 3, medium: 2, low: 1 };
+                    return sorted.sort((a, b) => priorityOrder[b.priority] - priorityOrder[a.priority]);
+                case 'priority-low':
+                    const priorityOrderLow = { high: 3, medium: 2, low: 1 };
+                    return sorted.sort((a, b) => priorityOrderLow[a.priority] - priorityOrderLow[b.priority]);
+                default:
+                    return sorted;
+            }
+        }
+
+        function getPriorityLabel(priority) {
+            const labels = {
+                high: 'Most Wanted',
+                medium: 'Would Be Nice',
+                low: 'Just an Idea'
+            };
+            return labels[priority] || priority;
+        }
+
+        function formatDate(isoString) {
+            const date = new Date(isoString);
+            return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+        }
+
+        function renderList() {
+            const container = document.getElementById('listContainer');
+
+            if (items.length === 0) {
+                container.innerHTML = '<div class="empty-message">Your list is empty. Start adding items!</div>';
+                return;
+            }
+
+            const sortedItems = sortItems(items);
+
+            container.innerHTML = sortedItems.map(item => `
+                <div class="list-item">
+                    <div class="item-header">
+                        <div class="item-main">
+                            <div class="item-text">
+                                ${escapeHtml(item.text)}
+                                <span class="item-priority priority-${item.priority}">
+                                    ${getPriorityLabel(item.priority)}
+                                </span>
+                            </div>
+                            ${item.price ? `<div class="item-price">$${item.price.toFixed(2)}</div>` : ''}
+                            ${item.description ? `<div class="item-description">${escapeHtml(item.description)}</div>` : ''}
+                            ${item.link ? `<div class="item-link"><a href="${escapeHtml(item.link)}" target="_blank" rel="noopener noreferrer">🔗 View Product</a></div>` : ''}
+                            <div class="item-meta">Added ${formatDate(item.created_at)}</div>
+                        </div>
+                        <div class="item-actions">
+                            <button class="edit-btn" onclick="editItem(${item.id})">Edit</button>
+                            <button class="delete-btn" onclick="deleteItem(${item.id})">Delete</button>
+                        </div>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        function escapeHtml(text) {
+            const div = document.createElement('div');
+            div.textContent = text;
+            return div.innerHTML;
+        }
+
+        function handleKeyPress(event) {
+            if (event.key === 'Enter') {
+                addItem();
+            }
+        }
+
+        // Initialize on page load
+        checkConfiguration();
+        loadItems();
+    </script>
+</body>
+</html>
