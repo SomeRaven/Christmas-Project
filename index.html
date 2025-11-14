@@ -44,6 +44,32 @@
             font-style: italic;
         }
 
+        .setup-notice {
+            background: #fff3cd;
+            border: 2px solid #ffc107;
+            border-radius: 10px;
+            padding: 15px;
+            margin-bottom: 20px;
+        }
+
+        .setup-notice h3 {
+            color: #856404;
+            margin-bottom: 10px;
+        }
+
+        .setup-notice p {
+            color: #856404;
+            font-size: 14px;
+            line-height: 1.5;
+        }
+
+        .setup-notice code {
+            background: #fff;
+            padding: 2px 6px;
+            border-radius: 3px;
+            font-family: monospace;
+        }
+
         .filter-section {
             background: #f8f9fa;
             border-radius: 10px;
@@ -72,32 +98,6 @@
         .filter-section select:focus {
             outline: none;
             border-color: #667eea;
-        }
-
-        .setup-notice {
-            background: #fff3cd;
-            border: 2px solid #ffc107;
-            border-radius: 10px;
-            padding: 15px;
-            margin-bottom: 20px;
-        }
-
-        .setup-notice h3 {
-            color: #856404;
-            margin-bottom: 10px;
-        }
-
-        .setup-notice p {
-            color: #856404;
-            font-size: 14px;
-            line-height: 1.5;
-        }
-
-        .setup-notice code {
-            background: #fff;
-            padding: 2px 6px;
-            border-radius: 3px;
-            font-family: monospace;
         }
 
         .input-section {
@@ -380,11 +380,10 @@
         <div class="setup-notice" id="setupNotice">
             <h3>⚙️ Setup Required</h3>
             <p>
-                To enable persistent storage via GitHub, you need to configure your GitHub credentials in the JavaScript code below:
-                <br><br>
-                1. Create a GitHub Personal Access Token (Settings → Developer settings → Personal access tokens → Tokens (classic) → Generate new token)<br>
-                2. Grant <code>repo</code> permissions<br>
-                3. Update the <code>GITHUB_CONFIG</code> in the script below with your username, repo name, and token
+                To enable shared access via Supabase:<br><br>
+                1. Create a free account at <a href="https://supabase.com" target="_blank">supabase.com</a><br>
+                2. Create a new project<br>
+                3. Update the <code>SUPABASE_CONFIG</code> in the code below with your URL and anon key
             </p>
         </div>
 
@@ -466,99 +465,52 @@
         </div>
     </div>
 
+    <!-- Supabase JS SDK -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
     <script>
         // ============================================
         // CONFIGURATION - UPDATE THESE VALUES
         // ============================================
-        const GITHUB_CONFIG = {
-            owner: 'YOUR_GITHUB_USERNAME',        // Your GitHub username
-            repo: 'YOUR_REPO_NAME',               // Repository name (e.g., 'christmas-list')
-            token: 'YOUR_GITHUB_TOKEN',           // Personal Access Token
-            branch: 'main',                       // Branch name (usually 'main' or 'master')
-            filePath: 'data/christmas-list.json'  // Path where data will be stored
+        const SUPABASE_CONFIG = {
+            url: 'YOUR_SUPABASE_URL',           // e.g., 'https://xxxxx.supabase.co'
+            anonKey: 'YOUR_SUPABASE_ANON_KEY'   // Your public anon key (safe to expose)
         };
 
         // ============================================
-        // GitHub API Functions
+        // Initialize Supabase Client
         // ============================================
-        let fileSha = null; // Used for updating existing files
+        let supabase = null;
+        let isConfigured = false;
 
-        async function githubRequest(endpoint, method = 'GET', body = null) {
-            const url = `https://api.github.com/repos/${GITHUB_CONFIG.owner}/${GITHUB_CONFIG.repo}/${endpoint}`;
-            const options = {
-                method,
-                headers: {
-                    'Authorization': `token ${GITHUB_CONFIG.token}`,
-                    'Accept': 'application/vnd.github.v3+json',
-                    'Content-Type': 'application/json'
-                }
-            };
-
-            if (body) {
-                options.body = JSON.stringify(body);
+        function initializeSupabase() {
+            if (SUPABASE_CONFIG.url === 'https://wmqlrmmnsjhwvjcjsrzj.supabase.co' || 
+                SUPABASE_CONFIG.anonKey === 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6IndtcWxybW1uc2pod3ZqY2pzcnpqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjMxNDAwODksImV4cCI6MjA3ODcxNjA4OX0.pMGqlbCWgeqt-XwXbnfmNy2fdAR2JZUUXLETf5HoZ20') {
+                isConfigured = false;
+                document.getElementById('setupNotice').style.display = 'block';
+                return false;
             }
 
-            const response = await fetch(url, options);
-            
-            if (!response.ok) {
-                const error = await response.json();
-                throw new Error(error.message || 'GitHub API request failed');
-            }
-
-            return response.json();
-        }
-
-        async function loadItemsFromGitHub() {
             try {
-                const data = await githubRequest(`contents/${GITHUB_CONFIG.filePath}?ref=${GITHUB_CONFIG.branch}`);
-                fileSha = data.sha;
-                const content = JSON.parse(atob(data.content));
-                return content.items || [];
+                supabase = window.supabase.createClient(
+                    SUPABASE_CONFIG.url,
+                    SUPABASE_CONFIG.anonKey
+                );
+                isConfigured = true;
+                document.getElementById('setupNotice').style.display = 'none';
+                return true;
             } catch (error) {
-                if (error.message.includes('Not Found')) {
-                    // File doesn't exist yet, return empty array
-                    return [];
-                }
-                throw error;
+                console.error('Error initializing Supabase:', error);
+                showError('Failed to connect to database. Using local storage.');
+                return false;
             }
-        }
-
-        async function saveItemsToGitHub(items) {
-            const content = btoa(JSON.stringify({ items }, null, 2));
-            const body = {
-                message: 'Update Christmas list',
-                content: content,
-                branch: GITHUB_CONFIG.branch
-            };
-
-            if (fileSha) {
-                body.sha = fileSha;
-            }
-
-            const response = await githubRequest(`contents/${GITHUB_CONFIG.filePath}`, 'PUT', body);
-            fileSha = response.content.sha;
         }
 
         // ============================================
         // Application Logic
         // ============================================
         let items = [];
-        let isConfigured = false;
         let currentFilter = 'date-latest';
-
-        function checkConfiguration() {
-            if (GITHUB_CONFIG.owner === 'YOUR_GITHUB_USERNAME' || 
-                GITHUB_CONFIG.token === 'YOUR_GITHUB_TOKEN' ||
-                GITHUB_CONFIG.repo === 'YOUR_REPO_NAME') {
-                isConfigured = false;
-                document.getElementById('setupNotice').style.display = 'block';
-                // Fall back to localStorage
-                return false;
-            }
-            isConfigured = true;
-            document.getElementById('setupNotice').style.display = 'none';
-            return true;
-        }
 
         function showError(message) {
             const errorDiv = document.getElementById('errorMessage');
@@ -572,7 +524,13 @@
         async function loadItems() {
             try {
                 if (isConfigured) {
-                    items = await loadItemsFromGitHub();
+                    const { data, error } = await supabase
+                        .from('christmas_items')
+                        .select('*')
+                        .order('created_at', { ascending: false });
+
+                    if (error) throw error;
+                    items = data || [];
                 } else {
                     // Fallback to localStorage
                     const saved = localStorage.getItem('christmasList');
@@ -581,26 +539,10 @@
                 renderList();
             } catch (error) {
                 console.error('Error loading items:', error);
-                showError('Failed to load your list. Using local storage instead.');
-                // Fallback to localStorage
+                showError('Failed to load items. Using local storage.');
                 const saved = localStorage.getItem('christmasList');
                 items = saved ? JSON.parse(saved) : [];
                 renderList();
-            }
-        }
-
-        async function saveItems() {
-            try {
-                if (isConfigured) {
-                    await saveItemsToGitHub(items);
-                } else {
-                    // Fallback to localStorage
-                    localStorage.setItem('christmasList', JSON.stringify(items));
-                }
-            } catch (error) {
-                console.error('Error saving items:', error);
-                showError('Failed to save to GitHub. Saving locally instead.');
-                localStorage.setItem('christmasList', JSON.stringify(items));
             }
         }
 
@@ -622,7 +564,6 @@
 
             try {
                 const newItem = {
-                    id: Date.now(),
                     text: itemName,
                     price: price ? parseFloat(price) : null,
                     link: link || null,
@@ -631,21 +572,30 @@
                     created_at: new Date().toISOString()
                 };
 
-                items.push(newItem);
-                await saveItems();
-                
+                if (isConfigured) {
+                    const { data, error } = await supabase
+                        .from('christmas_items')
+                        .insert([newItem])
+                        .select();
+
+                    if (error) throw error;
+                } else {
+                    newItem.id = Date.now();
+                    items.push(newItem);
+                    localStorage.setItem('christmasList', JSON.stringify(items));
+                }
+
                 // Clear form
                 document.getElementById('itemInput').value = '';
                 document.getElementById('priceInput').value = '';
                 document.getElementById('linkInput').value = '';
                 document.getElementById('priorityInput').value = 'medium';
                 document.getElementById('descriptionInput').value = '';
-                
-                renderList();
+
+                await loadItems();
             } catch (error) {
                 console.error('Error adding item:', error);
-                showError('Failed to add item. Please try again.');
-                items.pop(); // Remove the item we just added
+                showError('Failed to add item: ' + (error.message || 'Please try again.'));
             } finally {
                 addBtn.disabled = false;
                 addBtn.textContent = 'Add to List';
@@ -658,9 +608,19 @@
             }
 
             try {
-                items = items.filter(item => item.id !== id);
-                await saveItems();
-                renderList();
+                if (isConfigured) {
+                    const { error } = await supabase
+                        .from('christmas_items')
+                        .delete()
+                        .eq('id', id);
+
+                    if (error) throw error;
+                } else {
+                    items = items.filter(item => item.id !== id);
+                    localStorage.setItem('christmasList', JSON.stringify(items));
+                }
+
+                await loadItems();
             } catch (error) {
                 console.error('Error deleting item:', error);
                 showError('Failed to delete item. Please try again.');
@@ -670,7 +630,6 @@
         async function editItem(id) {
             const item = items.find(item => item.id === id);
             
-            // Create a simple edit dialog
             const newName = prompt('Edit item name:', item.text);
             if (newName === null) return;
             
@@ -685,14 +644,27 @@
             }
 
             try {
-                item.text = newName.trim();
-                item.price = newPrice ? parseFloat(newPrice) : null;
-                item.link = newLink.trim() || null;
-                item.priority = ['high', 'medium', 'low'].includes(newPriority) ? newPriority : item.priority;
-                item.description = newDescription.trim() || null;
-                
-                await saveItems();
-                renderList();
+                const updatedItem = {
+                    text: newName.trim(),
+                    price: newPrice ? parseFloat(newPrice) : null,
+                    link: newLink.trim() || null,
+                    priority: ['high', 'medium', 'low'].includes(newPriority) ? newPriority : item.priority,
+                    description: newDescription.trim() || null
+                };
+
+                if (isConfigured) {
+                    const { error } = await supabase
+                        .from('christmas_items')
+                        .update(updatedItem)
+                        .eq('id', id);
+
+                    if (error) throw error;
+                } else {
+                    Object.assign(item, updatedItem);
+                    localStorage.setItem('christmasList', JSON.stringify(items));
+                }
+
+                await loadItems();
             } catch (error) {
                 console.error('Error updating item:', error);
                 showError('Failed to update item. Please try again.');
@@ -709,9 +681,9 @@
             
             switch(currentFilter) {
                 case 'date-latest':
-                    return sorted.sort((a, b) => b.id - a.id);
+                    return sorted.sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
                 case 'date-earliest':
-                    return sorted.sort((a, b) => a.id - b.id);
+                    return sorted.sort((a, b) => new Date(a.created_at) - new Date(b.created_at));
                 case 'price-high':
                     return sorted.sort((a, b) => (b.price || 0) - (a.price || 0));
                 case 'price-low':
@@ -781,14 +753,8 @@
             return div.innerHTML;
         }
 
-        function handleKeyPress(event) {
-            if (event.key === 'Enter') {
-                addItem();
-            }
-        }
-
         // Initialize on page load
-        checkConfiguration();
+        initializeSupabase();
         loadItems();
     </script>
 </body>
