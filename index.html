@@ -377,6 +377,16 @@
         <h1>🎄 My Christmas List 🎁</h1>
         <p class="subtitle">What I'm hoping for this year</p>
 
+        <div class="setup-notice" id="setupNotice">
+            <h3>⚙️ Setup Required</h3>
+            <p>
+                To enable shared access via Supabase:<br><br>
+                1. Create a free account at <a href="https://supabase.com" target="_blank">supabase.com</a><br>
+                2. Create a new project<br>
+                3. Update the <code>SUPABASE_CONFIG</code> in the code below with your URL and anon key
+            </p>
+        </div>
+
         <div id="errorMessage" class="error-message"></div>
 
         <div class="filter-section">
@@ -474,9 +484,8 @@
         let isConfigured = false;
 
         function initializeSupabase() {
-            if (SUPABASE_CONFIG.url === 'https://wmqlrmmnsjhwvjcjsrzj.supabase.co' || 
-                SUPABASE_CONFIG.anonKey === 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6IndtcWxybW1uc2pod3ZqY2pzcnpqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjMxNDAwODksImV4cCI6MjA3ODcxNjA4OX0.pMGqlbCWgeqt-XwXbnfmNy2fdAR2JZUUXLETf5HoZ20') {
-                isConfigured = false;
+            if (SUPABASE_CONFIG.url === 'YOUR_SUPABASE_URL' || 
+            SUPABASE_CONFIG.anonKey === 'YOUR_SUPABASE_ANON_KEY') {                isConfigured = false;
                 document.getElementById('setupNotice').style.display = 'block';
                 return false;
             }
