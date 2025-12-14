@@ -44,32 +44,6 @@
             font-style: italic;
         }
 
-        .setup-notice {
-            background: #fff3cd;
-            border: 2px solid #ffc107;
-            border-radius: 10px;
-            padding: 15px;
-            margin-bottom: 20px;
-        }
-
-        .setup-notice h3 {
-            color: #856404;
-            margin-bottom: 10px;
-        }
-
-        .setup-notice p {
-            color: #856404;
-            font-size: 14px;
-            line-height: 1.5;
-        }
-
-        .setup-notice code {
-            background: #fff;
-            padding: 2px 6px;
-            border-radius: 3px;
-            font-family: monospace;
-        }
-
         .filter-section {
             background: #f8f9fa;
             border-radius: 10px;
@@ -310,23 +284,6 @@
             font-style: italic;
         }
 
-        .loading-message {
-            text-align: center;
-            color: #667eea;
-            padding: 40px;
-            font-style: italic;
-        }
-
-        .error-message {
-            background: #fee;
-            color: #c41e3a;
-            padding: 10px;
-            border-radius: 10px;
-            margin-bottom: 20px;
-            text-align: center;
-            display: none;
-        }
-
         .footer {
             margin-top: 30px;
             text-align: center;
@@ -376,18 +333,6 @@
     <div class="container">
         <h1>🎄 My Christmas List 🎁</h1>
         <p class="subtitle">What I'm hoping for this year</p>
-
-        <div class="setup-notice" id="setupNotice">
-            <h3>⚙️ Setup Required</h3>
-            <p>
-                To enable shared access via Supabase:<br><br>
-                1. Create a free account at <a href="https://supabase.com" target="_blank">supabase.com</a><br>
-                2. Create a new project<br>
-                3. Update the <code>SUPABASE_CONFIG</code> in the code below with your URL and anon key
-            </p>
-        </div>
-
-        <div id="errorMessage" class="error-message"></div>
 
         <div class="filter-section">
             <label for="filterSelect">Sort by:</label>
@@ -455,7 +400,7 @@
         </div>
 
         <div class="list-container" id="listContainer">
-            <div class="loading-message">Loading your list...</div>
+            <div class="empty-message">Your list is empty. Start adding items!</div>
         </div>
 
         <div class="footer">
@@ -465,168 +410,96 @@
         </div>
     </div>
 
-    <!-- Supabase JS SDK -->
-    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-
     <script>
-        // ============================================
-        // CONFIGURATION - UPDATE THESE VALUES
-        // ============================================
-        const SUPABASE_CONFIG = {
-            url: 'https://wmqlrmmnsjhwvjcjsrzj.supabase.co',           // e.g., 'https://xxxxx.supabase.co'
-            anonKey: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6IndtcWxybW1uc2pod3ZqY2pzcnpqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjMxNDAwODksImV4cCI6MjA3ODcxNjA4OX0.pMGqlbCWgeqt-XwXbnfmNy2fdAR2JZUUXLETf5HoZ20'   // Your public anon key (safe to expose)
-        };
-
-        // ============================================
-        // Initialize Supabase Client
-        // ============================================
-        let supabase = null;
-        let isConfigured = false;
-
-        function initializeSupabase() {
-            if (SUPABASE_CONFIG.url === 'YOUR_SUPABASE_URL' || 
-            SUPABASE_CONFIG.anonKey === 'YOUR_SUPABASE_ANON_KEY') {                isConfigured = false;
-                document.getElementById('setupNotice').style.display = 'block';
-                return false;
-            }
-
-            try {
-                supabase = window.supabase.createClient(
-                    SUPABASE_CONFIG.url,
-                    SUPABASE_CONFIG.anonKey
-                );
-                isConfigured = true;
-                document.getElementById('setupNotice').style.display = 'none';
-                return true;
-            } catch (error) {
-                console.error('Error initializing Supabase:', error);
-                showError('Failed to connect to database. Using local storage.');
-                return false;
-            }
-        }
-
-        // ============================================
-        // Application Logic
-        // ============================================
         let items = [];
         let currentFilter = 'date-latest';
 
-        function showError(message) {
-            const errorDiv = document.getElementById('errorMessage');
-            errorDiv.textContent = message;
-            errorDiv.style.display = 'block';
-            setTimeout(() => {
-                errorDiv.style.display = 'none';
-            }, 5000);
-        }
-
-        async function loadItems() {
-            try {
-                if (isConfigured) {
-                    const { data, error } = await supabase
-                        .from('christmas_items')
-                        .select('*')
-                        .order('created_at', { ascending: false });
-
-                    if (error) throw error;
-                    items = data || [];
-                } else {
-                    // Fallback to localStorage
-                    const saved = localStorage.getItem('christmasList');
-                    items = saved ? JSON.parse(saved) : [];
-                }
-                renderList();
-            } catch (error) {
-                console.error('Error loading items:', error);
-                showError('Failed to load items. Using local storage.');
-                const saved = localStorage.getItem('christmasList');
-                items = saved ? JSON.parse(saved) : [];
-                renderList();
+        // Load items from localStorage
+        function loadItems() {
+            const saved = localStorage.getItem('christmasList');
+            if (saved) {
+                items = JSON.parse(saved);
+            } else {
+                // Hardcoded data from Supabase
+                items = [
+                    {"id": 3, "text": "Steam Deck", "price": 670.0, "link": "https://www.amazon.com/VALVE-Steam-512GB-International-Version/dp/B0CP2YVFD4/ref=sr_1_2?crid=2WFDF9QIHSE5A&dib=eyJ2IjoiMSJ9.fl6cmh7kS5EKMgbypoKqQbr5uk9kDOAjUyW6WPybpnDm3H1VbXKXtFmybQnb2hqKDliRIa1scvp6Xc8_ahKs1fBpRyl2POoCKjR8IANTCvrsnPN5MehdqyCr-OxD3WbGKweFCcfXsKLv9_51oqOBIsxtyFKfJhpHLs0dYn2hFeMk8SxkJdeZFtghKbVMtn-uEymHRLLpqSMFnRccWjk2Twt9X9-b7kbwEj9LiywkqJI.onDeN4XPDeP3zkb4PcX96uWfp_Vc9G1e1tjp0sXEhpQ&dib_tag=se&keywords=steam+deck&qid=1763153621&sprefix=steam+dec%2Caps%2C228&sr=8-2", "priority": "high", "description": "I know this is a lot but I have wanted to get this for a while.", "created_at": "2025-11-14 20:54:49.157Z"},
+                    {"id": 4, "text": "Apple Watch Series 11", "price": 389.0, "link": "https://www.amazon.com/Apple-Watch-Smartwatch-Aluminum-Always/dp/B0FQF9ZX7P/ref=sr_1_1_sspa?crid=1VAG85GKZH0X8&dib=eyJ2IjoiMSJ9.A04M77uS7qRq639Ocqk1ADlqTiNENcV9sH_Gn6Srqy5mkhiwQNXM3YWAYEV5zYqFoa9VOgCZj7T8uXPJswePWk2AbUhylmXNg59TLdARABD3yTZ_lZuhUj0jkOzIPXz9eOD8wmCzgHdpEQqcOd3_6AT-xFJlEyQticbceqdENViZgHfsxjISiv8sHkVBpFOJz3TKTJjCLM9UYUysiEHaF2Ghz-rFOnPhvC9czTWOee4.UYfjR2dMuKVclEywS5AwztPbAxqqf4I4lDUE7I638KQ&dib_tag=se&keywords=apple%2Bwatch&qid=1763153693&sprefix=apple%2Bwatch%2Caps%2C230&sr=8-1-spons&sp_csd=d2lkZ2V0TmFtZT1zcF9hdGY&th=1", "priority": "high", "description": "I wanted to get this for school and I've want'ed to start working out more regularly", "created_at": "2025-11-14 20:55:53.873Z"},
+                    {"id": 5, "text": "Pink Fake Landline Phone", "price": 27.99, "link": "https://www.amazon.com/dp/B0D91VVFQJ/?coliid=I119STGXQ5MO61&colid=3C6JDB5JQLLG&ref_=list_c_wl_gv_ov_lig_pi_dp&th=1", "priority": "low", "description": "I want to use this is class example: \"Let me call someone that would care.... they didn't answer\"", "created_at": "2025-11-14 20:59:47.303Z"},
+                    {"id": 6, "text": "Standing Desk!", "price": 59.99, "link": "https://www.amazon.com/dp/B0CMWPG77P/?coliid=I1WYG6DVCA7C08&colid=3C6JDB5JQLLG&ref_=list_c_wl_gv_ov_lig_pi_dp&th=1", "priority": "low", "description": null, "created_at": "2025-11-14 21:01:01.288Z"},
+                    {"id": 7, "text": "Shark FlexStyle", "price": 249.0, "link": "http://www.amazon.com/dp/B0B89P16MC/?coliid=I33L4Y04CER7XS&colid=Y8W9QHQU6JY7&psc=1&ref_=list_c_wl_lv_ov_lig_dp_it", "priority": "high", "description": "I've wanted this for a while", "created_at": "2025-11-14 21:02:35.055Z"},
+                    {"id": 8, "text": "Sick Poker Set", "price": 89.99, "link": "https://www.amazon.com/dp/B08HNC4FPC/?coliid=I1602DKMN9BQC7&colid=Y8W9QHQU6JY7&psc=1&ref_=list_c_wl_lv_ov_lig_dp_it", "priority": "low", "description": "Its expensive but CoOoL", "created_at": "2025-11-14 21:03:22.957Z"},
+                    {"id": 9, "text": "LEGO Atari", "price": 249.99, "link": "https://www.amazon.com/dp/B01N9DA98E/?coliid=IOTICSJXEEC6Q&colid=Y8W9QHQU6JY7&ref_=list_c_wl_lv_ov_lig_dp_it&th=1", "priority": "low", "description": "Sick", "created_at": "2025-11-14 21:04:02.374Z"},
+                    {"id": 10, "text": "Candy For My Classroom", "price": 15.0, "link": "https://www.amazon.com/dp/B01N9DA98E/?coliid=IOTICSJXEEC6Q&colid=Y8W9QHQU6JY7&ref_=list_c_wl_lv_ov_lig_dp_it&th=1", "priority": "low", "description": null, "created_at": "2025-11-14 21:05:10.59Z"},
+                    {"id": 11, "text": "LEGO Super Mario Game Boy", "price": 59.97, "link": "https://www.amazon.com/LEGO-Super-Mario-Game-Boy/dp/B0DX3J6MT7/?_encoding=UTF8&pd_rd_w=IImoT&content-id=amzn1.sym.048a6e3c-8d40-4302-8312-26c626af6738%3Aamzn1.symc.050ea944-f1cf-4610-b462-3b604f2f4082&pf_rd_p=048a6e3c-8d40-4302-8312-26c626af6738&pf_rd_r=EQK6YB767W3P22R41543&pd_rd_wg=3Vw47&pd_rd_r=8a7f6869-af16-4896-9497-078284ed41e8&ref_=pd_hp_d_btf_ci_mcx_mr_ca_id_hp_d", "priority": "low", "description": null, "created_at": "2025-11-14 21:06:36.724Z"},
+                    {"id": 12, "text": "Pirate Themed Metal Poker Chip Set", "price": 279.65, "link": "https://www.amazon.com/PIRATEGOLD-Pirate-Gold-Gunmetal-Carrying/dp/B0D8JMWQGP/?_encoding=UTF8&pd_rd_w=SoFUL&content-id=amzn1.sym.048a6e3c-8d40-4302-8312-26c626af6738%3Aamzn1.symc.050ea944-f1cf-4610-b462-3b604f2f4082&pf_rd_p=048a6e3c-8d40-4302-8312-26c626af6738&pf_rd_r=EQK6YB767W3P22R41543&pd_rd_wg=3Vw47&pd_rd_r=8a7f6869-af16-4896-9497-078284ed41e8&ref_=pd_hp_d_btf_ci_mcx_mr_ca_id_hp_d", "priority": "low", "description": "Sick", "created_at": "2025-11-14 21:07:10.81Z"},
+                    {"id": 13, "text": "Lap Desk", "price": 34.99, "link": "https://www.amazon.com/Lap-Desk-Laptop-Notebook-MacBook/dp/B07FW2KT8F/ref=sxbs_pa_sp_search_thematic_btf_sspa?content-id=amzn1.sym.22fe3556-db88-4fca-a061-9b88e71873e5%3Aamzn1.sym.22fe3556-db88-4fca-a061-9b88e71873e5&cv_ct_cx=teacher%2Bstuff&keywords=teacher%2Bstuff&pd_rd_i=B07FW2KT8F&pd_rd_r=d3e5090f-508c-4ecd-9da6-40f2a2fa670e&pd_rd_w=sseU4&pd_rd_wg=K6MAv&pf_rd_p=22fe3556-db88-4fca-a061-9b88e71873e5&pf_rd_r=DV33Q0XNYC844MHC2XNZ&qid=1763154617&sbo=RZvfv%2F%2FHxDF%2BO5021pAnSA%3D%3D&sr=1-50-7d2fbe28-de39-4340-8caa-0f25741ee617-spons&xpid=hoC8A8DKt057y&aref=sL0GUPwzZs&sp_csd=d2lkZ2V0TmFtZT1zcF9zZWFyY2hfdGhlbWF0aWNfYnRm&th=1", "priority": "low", "description": null, "created_at": "2025-11-14 21:13:47.994Z"},
+                    {"id": 14, "text": "Weighed Blanket", "price": 35.99, "link": "https://www.amazon.com/Yescool-Weighted-Blanket-Sleeping-Breathable/dp/B092LZLLGF/ref=sr_1_2?crid=1QUIIPFDXSB3V&dib=eyJ2IjoiMSJ9.7mc4K0OLYBK6Cn0KC0s50sSoBYtTSjCWTkM3TaTs9oSfDEidS0vfRH5AP8SUnt-julSkHrP1wfV40VHMU3w1fj7ZaYCHRk6WxaxRoKRfhN2aFCZkZEcpzjId-t9lZ8-o74N4S5TwP7TH-kUIr5lVWcbl5n4sGLa_QJmJjLzkYvKDyf275GUt_z5gVmMxIlpXx5zm67EBZUzBiRDUBt6o41cV8ntr-kpcnnEkmIAB8ww.4eyhtbo-W1nrOvCaNxRsxbdXayQHDhAy58nyij3JqvI&dib_tag=se&keywords=weighted%2Bblanket&qid=1763154945&sprefix=weighted%2Cspecialty-aps%2C237&sr=8-2&th=1", "priority": "low", "description": null, "created_at": "2025-11-14 21:16:22.892Z"},
+                    {"id": 15, "text": "Target Gift Card", "price": 50.0, "link": null, "priority": "medium", "description": "For Teacher Clothes", "created_at": "2025-11-14 21:18:16.76Z"},
+                    {"id": 16, "text": "Micheals Gift Card", "price": 50.0, "link": null, "priority": "medium", "description": "Yarn.... Fabric... Etc", "created_at": "2025-11-14 21:18:45.723Z"},
+                    {"id": 17, "text": "Teacher T-Shirt #1", "price": 13.99, "link": "https://www.amazon.com/Teacher-Shirts-Womens-Graphic-Casual/dp/B09TF3FDX9/ref=sr_1_10?crid=74BXZKG3J0JM&dib=eyJ2IjoiMSJ9.ry4OHj6tIAjp4Eqe8dZ15HbkfopiKFaUvAXiMd2Dfc4rqpHpZo_aDUN3tRLRxsuGvT4iXVAYurbJLbGgyuOFhDTAu3A3qf-atpb248ZLqT832DPlzK_5f3YekS2ENIN9ur3HvnLxp3FuUCBnE0taLuQN7SBZ-EdLNkmyQ4TkPQCdl4zIDf0Gb487E3568tErW4AiQqJJpu2xSHEoEfCcVrq7kUjMpCyPwbhjhr_CzCZXU_PWQBSlpBTCrmp6_A9slgAG-2-zqVL3adUZwlpAZvaYoFaYHIwfeKdva7TLqVw.PXayx7xyNvqiILB594NUFoFUNbk8nGM2ae-MaofVR70&dib_tag=se&keywords=teacher%2Bshirts&qid=1763155195&sprefix=Teacher%2B%2Cspecialty-aps%2C243&sr=8-10&th=1&psc=1", "priority": "medium", "description": "Sick Shirt", "created_at": "2025-11-14 21:20:55.759Z"},
+                    {"id": 18, "text": "Dinosaur Shirt", "price": 12.87, "link": "https://www.amazon.com/ROSEPARK-Women-Dinosaur-Graphic-Medium/dp/B07JHV6TJM/ref=sxbs_pa_sp_search_thematic_btf_sspa?content-id=amzn1.sym.aef7a50a-dcf1-4234-b1e5-edf92978a40f%3Aamzn1.sym.aef7a50a-dcf1-4234-b1e5-edf92978a40f&crid=74BXZKG3J0JM&cv_ct_cx=teacher%2Bshirts&keywords=teacher%2Bshirts&pd_rd_i=B07JHV6TJM&pd_rd_r=45672fe7-4943-4707-b0b2-141402964c90&pd_rd_w=byCVn&pd_rd_wg=f6S0L&pf_rd_p=aef7a50a-dcf1-4234-b1e5-edf92978a40f&pf_rd_r=7WDM09H5HFQY6MPE8VPJ&qid=1763155195&sbo=RZvfv%2F%2FHxDF%2BO5021pAnSA%3D%3D&sprefix=Teacher%2B%2Cspecialty-aps%2C243&sr=1-2-b4f23351-3f4d-45d4-9f01-ee5191fb028d-spons&srs=210998206011&aref=v9ZKYxfUQg&sp_csd=d2lkZ2V0TmFtZT1zcF9zZWFyY2hfdGhlbWF0aWNfYnRm&th=1&psc=1", "priority": "medium", "description": null, "created_at": "2025-11-14 21:22:04.058Z"},
+                    {"id": 19, "text": "AMD Ryzen 9 5900X", "price": 269.0, "link": "https://www.amazon.com/dp/B08164VTWH?tag=pcpapi-20&linkCode=ogi&th=1", "priority": "high", "description": "I have an out dated CPU and would like another one", "created_at": "2025-11-15 05:29:55.826Z"},
+                    {"id": 20, "text": "Steam Gift Card", "price": 50.0, "link": null, "priority": "low", "description": null, "created_at": "2025-11-15 20:39:54.778Z"}
+                ];
+                saveItems(); // Save for future visits
             }
+            renderList();
         }
 
-        async function addItem() {
+        // Save items to localStorage
+        function saveItems() {
+            localStorage.setItem('christmasList', JSON.stringify(items));
+        }
+
+        // Add new item
+        function addItem() {
             const itemName = document.getElementById('itemInput').value.trim();
             const price = document.getElementById('priceInput').value;
             const link = document.getElementById('linkInput').value.trim();
             const priority = document.getElementById('priorityInput').value;
             const description = document.getElementById('descriptionInput').value.trim();
-            const addBtn = document.getElementById('addBtn');
 
             if (itemName === '') {
                 alert('Please enter an item name!');
                 return;
             }
 
-            addBtn.disabled = true;
-            addBtn.textContent = 'Adding...';
+            const newItem = {
+                id: Date.now(),
+                text: itemName,
+                price: price ? parseFloat(price) : null,
+                link: link || null,
+                priority: priority,
+                description: description || null,
+                created_at: new Date().toISOString()
+            };
 
-            try {
-                const newItem = {
-                    text: itemName,
-                    price: price ? parseFloat(price) : null,
-                    link: link || null,
-                    priority: priority,
-                    description: description || null,
-                    created_at: new Date().toISOString()
-                };
-
-                if (isConfigured) {
-                    const { data, error } = await supabase
-                        .from('christmas_items')
-                        .insert([newItem])
-                        .select();
-
-                    if (error) throw error;
-                } else {
-                    newItem.id = Date.now();
-                    items.push(newItem);
-                    localStorage.setItem('christmasList', JSON.stringify(items));
-                }
-
-                // Clear form
-                document.getElementById('itemInput').value = '';
-                document.getElementById('priceInput').value = '';
-                document.getElementById('linkInput').value = '';
-                document.getElementById('priorityInput').value = 'medium';
-                document.getElementById('descriptionInput').value = '';
-
-                await loadItems();
-            } catch (error) {
-                console.error('Error adding item:', error);
-                showError('Failed to add item: ' + (error.message || 'Please try again.'));
-            } finally {
-                addBtn.disabled = false;
-                addBtn.textContent = 'Add to List';
-            }
+            items.push(newItem);
+            saveItems();
+            
+            // Clear form
+            document.getElementById('itemInput').value = '';
+            document.getElementById('priceInput').value = '';
+            document.getElementById('linkInput').value = '';
+            document.getElementById('priorityInput').value = 'medium';
+            document.getElementById('descriptionInput').value = '';
+            
+            renderList();
         }
 
-        async function deleteItem(id) {
+        // Delete item
+        function deleteItem(id) {
             if (!confirm('Are you sure you want to remove this item?')) {
                 return;
             }
 
-            try {
-                if (isConfigured) {
-                    const { error } = await supabase
-                        .from('christmas_items')
-                        .delete()
-                        .eq('id', id);
-
-                    if (error) throw error;
-                } else {
-                    items = items.filter(item => item.id !== id);
-                    localStorage.setItem('christmasList', JSON.stringify(items));
-                }
-
-                await loadItems();
-            } catch (error) {
-                console.error('Error deleting item:', error);
-                showError('Failed to delete item. Please try again.');
-            }
+            items = items.filter(item => item.id !== id);
+            saveItems();
+            renderList();
         }
 
-        async function editItem(id) {
+        // Edit item
+        function editItem(id) {
             const item = items.find(item => item.id === id);
             
             const newName = prompt('Edit item name:', item.text);
@@ -642,39 +515,23 @@
                 return;
             }
 
-            try {
-                const updatedItem = {
-                    text: newName.trim(),
-                    price: newPrice ? parseFloat(newPrice) : null,
-                    link: newLink.trim() || null,
-                    priority: ['high', 'medium', 'low'].includes(newPriority) ? newPriority : item.priority,
-                    description: newDescription.trim() || null
-                };
-
-                if (isConfigured) {
-                    const { error } = await supabase
-                        .from('christmas_items')
-                        .update(updatedItem)
-                        .eq('id', id);
-
-                    if (error) throw error;
-                } else {
-                    Object.assign(item, updatedItem);
-                    localStorage.setItem('christmasList', JSON.stringify(items));
-                }
-
-                await loadItems();
-            } catch (error) {
-                console.error('Error updating item:', error);
-                showError('Failed to update item. Please try again.');
-            }
+            item.text = newName.trim();
+            item.price = newPrice ? parseFloat(newPrice) : null;
+            item.link = newLink.trim() || null;
+            item.priority = ['high', 'medium', 'low'].includes(newPriority) ? newPriority : item.priority;
+            item.description = newDescription.trim() || null;
+            
+            saveItems();
+            renderList();
         }
 
+        // Handle filter change
         function handleFilterChange() {
             currentFilter = document.getElementById('filterSelect').value;
             renderList();
         }
 
+        // Sort items based on current filter
         function sortItems(itemsToSort) {
             const sorted = [...itemsToSort];
             
@@ -698,6 +555,7 @@
             }
         }
 
+        // Get priority label
         function getPriorityLabel(priority) {
             const labels = {
                 high: 'Most Wanted',
@@ -707,11 +565,13 @@
             return labels[priority] || priority;
         }
 
+        // Format date
         function formatDate(isoString) {
             const date = new Date(isoString);
             return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
         }
 
+        // Render the list
         function renderList() {
             const container = document.getElementById('listContainer');
 
@@ -746,6 +606,7 @@
             `).join('');
         }
 
+        // Escape HTML to prevent XSS
         function escapeHtml(text) {
             const div = document.createElement('div');
             div.textContent = text;
@@ -753,7 +614,6 @@
         }
 
         // Initialize on page load
-        initializeSupabase();
         loadItems();
     </script>
 </body>
